@@ -1,51 +1,51 @@
-"use strict";
-
 Object.assign = require('object.assign');
 
-var fs = require('fs');
-var path = require('path');
-var gulp = require('gulp');
+import fs from 'fs';
+import path from 'path';
+import gulp from 'gulp';
 
-var plugins = require('gulp-load-plugins')();
-var React = require('react');
-var webpack = require('webpack');
-var KarmaServer = require('karma').Server;
+import gulpLoadPlugins from 'gulp-load-plugins';
+import React from 'react';
+import webpack from 'webpack';
+import { Server as KarmaServer } from 'karma';
 
-var PRODUCTION = (process.env.NODE_ENV === 'production');
+const plugins = gulpLoadPlugins();
+const PRODUCTION = (process.env.NODE_ENV === 'production');
 
-var paths = {
+const paths = {
+  gulpfile: 'gulpfile.babel.js',
   src: 'src/**/*.js?(x)',
-  example: 'example/**/*.js?(x)'
-}
+  example: 'example/**/*.js?(x)',
+};
 
-var gulpPlugins = [
+let gulpPlugins = [
   // Fix for moment including all locales
   // Ref: http://stackoverflow.com/a/25426019
-  new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
+  new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
 ];
 
 if (PRODUCTION) {
   gulpPlugins.push(new webpack.DefinePlugin({
     "process.env": {
-      NODE_ENV: JSON.stringify("production")
-    }
+      NODE_ENV: JSON.stringify("production"),
+    },
   }));
   gulpPlugins.push(new webpack.optimize.DedupePlugin());
   gulpPlugins.push(new webpack.optimize.UglifyJsPlugin({
     compress: true,
     mangle: true,
-    sourceMap: true
+    sourceMap: true,
   }));
 }
 
-var webpackConfig = {
+const webpackConfig = {
   cache: true,
   debug: !PRODUCTION,
   devtool: PRODUCTION ? 'source-map' : 'eval-source-map',
   context: __dirname,
   output: {
     path: path.resolve('./example/build/'),
-    filename: 'index.js'
+    filename: 'index.js',
   },
   module: {
     loaders: [
@@ -53,32 +53,32 @@ var webpackConfig = {
         test: /\.jsx|.js$/,
         exclude: /node_modules\//,
         loaders: [
-          'babel-loader?stage=1&plugins[]=object-assign'
-        ]
+          'babel-loader?stage=1&plugins[]=object-assign',
+        ],
       },
     ],
     postLoaders: [
       {
-        loader: "transform/cacheable?brfs"
-      }
-    ]
+        loader: "transform/cacheable?brfs",
+      },
+    ],
   },
   resolve: {
-    extensions: ['', '.js', '.jsx']
+    extensions: ['', '.js', '.jsx'],
   },
-  plugins: gulpPlugins
+  plugins: gulpPlugins,
 };
 
 gulp.task('lint', function() {
-  return gulp.src([paths.src, paths.example])
+  return gulp.src([paths.gulpfile, paths.src, paths.example])
              .pipe(plugins.eslint())
              .pipe(plugins.eslint.format())
-             .pipe(plugins.eslint.failOnError());
+             .pipe(plugins.eslint.failAfterError());
 });
 
 gulp.task('test-unit', ['lint'], function (done) {
   new KarmaServer({
-    configFile: __dirname + '/karma.conf.js'
+    configFile: __dirname + '/karma.conf.js',
   }, done).start();
 });
 
@@ -93,20 +93,20 @@ gulp.task('test-coverage', ['lint'], function (done) {
           test: /\.(js|jsx)$/,
           include: path.resolve('src/'),
           exclude: /tests/,
-          loader: 'isparta'
+          loader: 'isparta',
         }, {
           test: /\.spec.js$/,
           include: path.resolve('src/'),
-          loader: 'babel'
+          loader: 'babel',
         }],
         loaders: [
-          {test: /\.(js|jsx)$/, exclude: /node_modules/, loader: require.resolve('babel-loader')}
-        ]
+          {test: /\.(js|jsx)$/, exclude: /node_modules/, loader: require.resolve('babel-loader')},
+        ],
       },
       resolve: {
-        extensions: ['', '.js', '.jsx']
-      }
-    }
+        extensions: ['', '.js', '.jsx'],
+      },
+    },
   }, done).start();
 });
 
@@ -115,7 +115,7 @@ gulp.task('build-dist-js', function() {
   return gulp.src(paths.src)
     .pipe(plugins.babel({
       stage: 1,
-      plugins: ['object-assign']
+      plugins: ['object-assign'],
     }))
     .pipe(plugins.extReplace('.js'))
     .pipe(gulp.dest('dist'));
@@ -140,7 +140,7 @@ gulp.task('build-example', function() {
   // setup babel hook
   require("babel/register")({
     stage: 1,
-    plugins: ['object-assign']
+    plugins: ['object-assign'],
   });
 
   var Index = React.createFactory(require('./example/base.jsx'));
@@ -166,7 +166,7 @@ gulp.task('watch-example-scss', ['build-example-scss'], function() {
 gulp.task('example-server', function() {
   plugins.connect.server({
     root: 'example',
-    port: '9989'
+    port: '9989',
   });
 });
 
